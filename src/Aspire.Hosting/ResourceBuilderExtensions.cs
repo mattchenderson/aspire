@@ -16,6 +16,7 @@ namespace Aspire.Hosting;
 public static class ResourceBuilderExtensions
 {
     private const string ConnectionStringEnvironmentName = "ConnectionStrings__";
+    private const string ASPIRE_COMPONENT_PREFIX_SETTING_NAME = "ASPIRE_COMPONENT_PREFIX";
 
     /// <summary>
     /// Adds an environment variable to the resource.
@@ -294,7 +295,9 @@ public static class ResourceBuilderExtensions
 
         return builder.WithEnvironment(context =>
         {
-            var connectionStringName = resource.ConnectionStringEnvironmentVariable ?? $"{ConnectionStringEnvironmentName}{connectionName}";
+            string prefix = (string?)context.EnvironmentVariables[ASPIRE_COMPONENT_PREFIX_SETTING_NAME] + "_" ?? "";
+
+            var connectionStringName = resource.ConnectionStringEnvironmentVariable ?? $"{ConnectionStringEnvironmentName}{prefix}{connectionName}";
 
             context.EnvironmentVariables[connectionStringName] = new ConnectionStringReference(resource, optional)
             {
@@ -302,6 +305,22 @@ public static class ResourceBuilderExtensions
             };
         });
     }
+    /// <summary>
+    /// Sets a prefix to be used for the overloading of Environment variables - POC ONLY FOR FUNCTIONS WORKLOAD. PROPER SOLUTION MIGHT BE DIFFERENt
+    /// </summary>
+    /// <typeparam name="TDestination">The destination resource.</typeparam>
+    /// <param name="builder">The resource where connection string will be injected.</param>
+    /// <param name="prefix">The prefix to use.</param>
+    /// <exception cref="DistributedApplicationException">Throws an exception if the connection string resolves to null. It can be null if the resource has no connection string, and if the configuration has no connection string for the source resource.</exception>
+    /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
+#pragma warning disable RS0016 // Add public types and members to the declared API
+    public static IResourceBuilder<TDestination> WithComponentPrefix<TDestination>(this IResourceBuilder<TDestination> builder, string prefix)
+        where TDestination : IResourceWithEnvironment
+    {
+        return builder
+            .WithEnvironment(ASPIRE_COMPONENT_PREFIX_SETTING_NAME, prefix); // this is fragile to multiple calls. Needs handling
+    }
+#pragma warning restore RS0016 // Add public types and members to the declared API
 
     /// <summary>
     /// Injects service discovery information as environment variables from the project resource into the destination resource, using the source resource's name as the service name.

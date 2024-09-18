@@ -20,6 +20,7 @@ namespace Microsoft.Extensions.Hosting;
 public static class AspireBlobStorageExtensions
 {
     private const string DefaultConfigSectionName = "Aspire:Azure:Storage:Blobs";
+    const string ASPIRE_COMPONENT_PREFIX_SETTING_NAME = "ASPIRE_COMPONENT_PREFIX";
 
     /// <summary>
     /// Registers <see cref="BlobServiceClient"/> as a singleton in the services provided by the <paramref name="builder"/>.
@@ -37,7 +38,9 @@ public static class AspireBlobStorageExtensions
         Action<AzureStorageBlobsSettings>? configureSettings = null,
         Action<IAzureClientBuilder<BlobServiceClient, BlobClientOptions>>? configureClientBuilder = null)
     {
-        new BlobStorageComponent().AddClient(builder, DefaultConfigSectionName, configureSettings, configureClientBuilder, connectionName, serviceKey: null);
+        string prefix = Environment.GetEnvironmentVariable(ASPIRE_COMPONENT_PREFIX_SETTING_NAME) + "_" ?? "";
+
+        new BlobStorageComponent().AddClient(builder, DefaultConfigSectionName, configureSettings, configureClientBuilder, prefix+connectionName, serviceKey: null);
     }
 
     /// <summary>
@@ -60,7 +63,9 @@ public static class AspireBlobStorageExtensions
 
         string configurationSectionName = BlobStorageComponent.GetKeyedConfigurationSectionName(name, DefaultConfigSectionName);
 
-        new BlobStorageComponent().AddClient(builder, configurationSectionName, configureSettings, configureClientBuilder, connectionName: name, serviceKey: name);
+        string prefix = Environment.GetEnvironmentVariable(ASPIRE_COMPONENT_PREFIX_SETTING_NAME) + "_" ?? "";
+
+        new BlobStorageComponent().AddClient(builder, configurationSectionName, configureSettings, configureClientBuilder, connectionName: (prefix+name), serviceKey: name);
     }
 
     private sealed class BlobStorageComponent : AzureComponent<AzureStorageBlobsSettings, BlobServiceClient, BlobClientOptions>

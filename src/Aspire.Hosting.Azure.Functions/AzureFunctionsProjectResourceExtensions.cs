@@ -10,6 +10,7 @@ namespace Aspire.Hosting.Azure;
 /// </summary>
 public static class AzureFunctionsProjectResourceExtensions
 {
+    private const string ASPIRE_COMPONENT_PREFIX_SETTING_NAME = "ASPIRE_COMPONENT_PREFIX";
     /// <summary>
     /// Adds an Azure Functions project to the distributed application.
     /// </summary>
@@ -90,7 +91,8 @@ public static class AzureFunctionsProjectResourceExtensions
                 }
 
                 context.Writer.WriteEndObject();
-            });
+            })
+            .WithComponentPrefix("ASPIRE_COMPONENT");
     }
 
     /// <summary>
@@ -121,9 +123,18 @@ public static class AzureFunctionsProjectResourceExtensions
 
         return destination.WithEnvironment(context =>
         {
-            connectionName ??= source.Resource.Name;
+            var resource = source.Resource;
+            connectionName ??= resource.Name;
 
             source.Resource.ApplyAzureFunctionsConfiguration(context.EnvironmentVariables, connectionName);
+
+            string prefix = (string?)context.EnvironmentVariables[ASPIRE_COMPONENT_PREFIX_SETTING_NAME] + "_" ?? "";
+            var connectionStringName =  $"ConnectionStrings__{prefix}{connectionName}";
+
+            context.EnvironmentVariables[connectionStringName] = new ConnectionStringReference(resource, false)
+            {
+                ConnectionName = connectionName
+            };
         });
     }
 }

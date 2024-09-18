@@ -69,6 +69,7 @@ public class AzureStorageResource(string name, Action<ResourceModuleConstruct> c
         {
             target[$"{connectionName}__blobServiceUri"] = BlobEndpoint;
             target[$"{connectionName}__queueServiceUri"] = QueueEndpoint;
+            target[$"{connectionName}__tableServiceUri"] = TableEndpoint;
         }
     }
 }
