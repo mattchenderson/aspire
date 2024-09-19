@@ -31,12 +31,14 @@ public class AzureBlobStorageResource(string name, AzureStorageResource storage)
         if (Parent.IsEmulator)
         {
             target[connectionName] = Parent.GetEmulatorConnectionString();
+            target[$"Aspire:Azure:Storage:Blobs:{connectionName}:ConnectionString"] = ConnectionStringExpression;
         }
         else
         {
             // Blob and Queue services are required to make blob triggers work.
             target[$"{connectionName}__blobServiceUri"] = Parent.BlobEndpoint;
             target[$"{connectionName}__queueServiceUri"] = Parent.QueueEndpoint;
+            target[$"Aspire:Azure:Storage:Blobs:{connectionName}:ServiceUri"] = ConnectionStringExpression;
         }
     }
 }

@@ -54,6 +54,7 @@ internal abstract class AzureComponent<TSettings, TClient, TClientOptions>
 
         var settings = new TSettings();
         BindSettingsToConfiguration(settings, configSection);
+        BindSettingsToConfiguration(settings, builder.Configuration.GetSection(GetKeyedConfigurationSectionName(connectionName,configurationSectionName)));
 
         Debug.Assert(settings is IConnectionStringSettings, $"The settings object should implement {nameof(IConnectionStringSettings)}.");
         if (settings is IConnectionStringSettings csSettings &&
